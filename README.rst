@@ -16,10 +16,24 @@ Create interactive job and inside ``run_sysnet.sh`` set ``do_LRfinder=true``, th
 Look for the directory that contains ``loss_vs_lr_0.png`` and use this plot to determine the learning rate for the NN. Set this learning rate (e.g. ``lr=0.005``) and set ``do_LRfinder=false`` and ``do_nnrun=true`` . Now run::
 
     bash run_sysnet.sh $region
+    exit
     
 Step 2 - part 1: Forward pass given the models obtained by training the NN. (repeat for each region)
 --------
 
-Create interactive job (first ``exit`` the previous one if still have time remianing)::
+Create new interactive job (first ``exit`` the previous if there is time allocation remaining)::
 
     salloc -N 1 -C haswell -t 04:00:00 --qos interactive -L SCRATCH,project -J sysgen
+    bash run_nnsamp.sh $region 
+
+Step 2 - part 2: Combine all windows obtained from forward pass
+--------
+
+If the interactive job time allocation has expired create another and run::
+
+    bash run_nncomb.sh
+    exit
+   
+Step 3: Contaminate mocks (subsampling)
+--------
+
