@@ -8,7 +8,12 @@
 
 run_sysnet=/global/homes/a/arosado/sysnetdev/scripts/appensemble.py
 
-export PYTHONPATH=$HOME/sysnetdev/:$PYTHONPATH
+export PYTHONPATH=$HOME/sysnetdev/:$HOME/LSSutils/:$PYTHONPATH
+
+module swap PrgEnv-${PE_ENV,,} PrgEnv-gnu
+module use /global/common/software/m3169/cori/modulefiles
+module load openmpi
+module load python
 conda activate sysnet
 
 # regions
@@ -25,8 +30,8 @@ model=dnnp
 loss=pnll
 etamin=0.00001
 
-do_LRfinder=true # for running the learning rate finder
-do_nnrun=false
+do_LRfinder=false # for running the learning rate finder
+do_nnrun=true
 
 if [ "${do_LRfinder}" = true ]
 then
