@@ -13,7 +13,7 @@ cd ${HOME}/sysgen/
 
 do_nncomb=true     #  1 h
 
-nncomb=${HOME}/sysgen/pull_sysnet_snapshot_mpidr9.py
+nncomb=${HOME}/sysgen/combine_nn_windows.py
 
 if [ "${do_nncomb}" = true ]
 then
