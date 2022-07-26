@@ -1,0 +1,44 @@
+12M	/global/cscratch1/sd/arosado/nlrg_features_bmzls_256.fits
+logging in /global/cscratch1/sd/arosado/test_sysnet/train.log
+# --- inputs params ---
+input_path: ['/global/cscratch1/sd/arosado/nlrg_features_bmzls_256.fits']
+output_path: /global/cscratch1/sd/arosado/test_sysnet/
+restore_model: None
+batch_size: 5000
+nepochs: 1
+nchains: 1
+find_lr: True
+find_structure: False
+find_l1: False
+do_kfold: False
+do_tar: False
+snapshot_ensemble: False
+normalization: z-score
+model: dnnp
+optim: adamw
+scheduler: cosann
+axes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+do_rfe: False
+eta_min: 1e-05
+learning_rate: 0.001
+nn_structure: [4, 20]
+l1_alpha: -1.0
+loss: pnll
+no_eval: False
+loss_kwargs: {'log_input': False, 'reduction': 'none'}
+optim_kwargs: {'betas': (0.9, 0.999), 'eps': 1e-08, 'weight_decay': 0.0, 'amsgrad': False}
+scheduler_kwargs: {'eta_min': 1e-05, 'T_0': 10, 'T_mult': 2}
+device: cpu
+pipeline initialized in 0.161 s
+# of data: 98027
+data loaded in 0.265 sec
+# running pipeline ...
+# training and evaluation
+partition_0 with (4, 20, 13, 1)
+# running hyper-parameter tunning ...
+# running learning rate finder ... 
+Stopping early, the loss has diverged
+Learning rate search finished. See the graph with {finder_name}.plot()
+LR finder done in 11.187 sec, check out /global/cscratch1/sd/arosado/test_sysnet/loss_vs_lr_0.png
+srun: error: nid00594: task 0: Exited with exit code 1
+srun: launch/slurm: _step_signal: Terminating StepId=61239711.0
