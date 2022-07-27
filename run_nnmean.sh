@@ -13,9 +13,9 @@ cd ${HOME}/sysgen/
 
 do_nnmean=true
 
-nncomb=${HOME}/sysgen/mean_nn_windows.py
+nnmean=${HOME}/sysgen/mean_nn_windows.py
 
-if [ "${do_nncomb}" = true ]
+if [ "${do_nnmean}" = true ]
 then
-    srun -n 1 python $nncomb
+    srun -n 1 python $nnmean
 fi
