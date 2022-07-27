@@ -32,6 +32,10 @@ Step 2 - part 2: Combine all windows obtained from forward pass
 If the interactive job time allocation has expired create another and run::
 
     bash run_nncomb.sh
+
+Then run ``run_nnmean.sh`` to obtain one selection function from the mean of the ensemble of selection functions::
+    
+    bash run_nnmean.sh
     exit
    
 Step 3: Contaminate mocks (subsampling)
