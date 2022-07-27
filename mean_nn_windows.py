@@ -24,8 +24,8 @@ output_dir = os.path.dirname(output_path)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
     
-is_good = count_i > 0.0
-wind_i[is_good] = wind_i[is_good] / count_i[is_good]
-wind_i[~is_good] = hp.UNSEEN
+is_good = count > 0.0
+wind[is_good] = wind[is_good] / count[is_good]
+wind[~is_good] = hp.UNSEEN
 print(f'wrote {output_path}')
-hp.write_map(output_path, wind_i, dtype=np.float64, fits_IDL=False, overwrite=True)    
+hp.write_map(output_path, wind, dtype=np.float64, fits_IDL=False, overwrite=True)    
