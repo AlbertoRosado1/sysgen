@@ -41,3 +41,5 @@ Then run ``run_nnmean.sh`` to obtain one selection function from the mean of the
 Step 3: Contaminate mocks (subsampling)
 --------
 
+Look at ``subsample_mock_nb.ipynb`` notebook.
+
