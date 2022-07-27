@@ -1,5 +1,5 @@
 #!/bin/bash
-# bash run_nncomb.sh
+# bash run_nnmean.sh
 
 export PYTHONPATH=$HOME/sysnetdev/:$HOME/LSSutils/:$PYTHONPATH
 
@@ -11,9 +11,9 @@ conda activate sysnet
 
 cd ${HOME}/sysgen/
 
-do_nncomb=true     #  1 h
+do_nnmean=true
 
-nncomb=${HOME}/sysgen/combine_nn_windows.py
+nncomb=${HOME}/sysgen/mean_nn_windows.py
 
 if [ "${do_nncomb}" = true ]
 then
