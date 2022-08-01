@@ -3,6 +3,8 @@ sysgen
 
 Repo for generating systematics on NERSC using Mehdi Rezaie's NN (SYSNet).
 
+For running this code you will need to run ``create_sysnet_env.sh`` at least once (assuming you have not approppiately installed SYSNet before). Also you will need to clone https://github.com/mehdirezaie/LSSutils.
+
 Step 1: Train the NN with real data. (repeat for each region)
 --------
 
