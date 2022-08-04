@@ -111,7 +111,7 @@ pick_selfn_randomly = np.random.permutation(np.arange(nwindows)) # randomize sel
 
 t0 = time()
 for i, ind in enumerate(pick_selfn_randomly[:only_choose]):
-    print(f'running {i+1}/{only_choose}. time elapsed: {time() - t0} s')
+    print(f'running {i+1}/{only_choose}. time elapsed: {time() - t0:2f} s')
     # read selection function (obtained from real data)
     sel_fn = _selection_function_filename(tracer='LRG', ind=ind)
     ngal_pred = hp.read_map(sel_fn)
@@ -138,4 +138,4 @@ for i, ind in enumerate(pick_selfn_randomly[:only_choose]):
     np.save(output_fn, cl_)
     
     
-print(f'finished at {time() - t0} s')   
+print(f'finished at {time() - t0:2f} s')   
