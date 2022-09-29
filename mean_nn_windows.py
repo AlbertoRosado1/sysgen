@@ -7,8 +7,9 @@ import fitsio as ft
 # Run this script ONLY after running combine_nn_windows.py .
 # nnwindow_*.hp{nside}.fits should be readable by hp.read_map, i.e. they should be healpix maps
 
+t = '_test1'
 nside = 256
-windows = glob(f'/global/cscratch1/sd/arosado/test_sysnet/windows_clean/nnwindow_*.hp{nside}.fits')
+windows = glob(f'/global/cscratch1/sd/arosado/test_sysnet/windows_clean{t}/nnwindow_*.hp{nside}.fits')
 
 count = np.zeros(12*nside*nside)
 wind = np.zeros(12*nside*nside) 
@@ -19,7 +20,7 @@ for window in windows:
     wind[is_seen] += w[is_seen]  
     count[is_seen] += 1.0
 
-output_path = f'/global/cscratch1/sd/arosado/test_sysnet/windows_clean/nn-weights.hp{nside}.fits'
+output_path = f'/global/cscratch1/sd/arosado/test_sysnet/windows_clean{t}/nn-weights.hp{nside}.fits'
 output_dir = os.path.dirname(output_path)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
