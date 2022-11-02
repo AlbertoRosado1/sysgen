@@ -65,7 +65,7 @@ def normalize_selection_func(ngal_pred, norm_method='mean'):
         selection_func[good] = (ngal_pred[good]-vmin) / (vmax-vmin)
     return selection_func
 
-def downsample(selection_func, mock, downsampling='mean'):
+def downsample(selection_func, mock, downsampling='mean', seed=None):
     """ downsample a mock catalog with a given selection function """
     assert downsampling in 'mean_frac', "downsampling method must be 'mean' or 'frac'"
     nside = hp.get_nside(selection_func)
@@ -81,6 +81,7 @@ def downsample(selection_func, mock, downsampling='mean'):
         dndz_raw = fraw(mock['Z'])
         frac = dndz_main/dndz_raw
         prob *= frac
+    rng = np.random.seed(seed=seed)
     good = np.random.uniform(size=mock.size) < prob
     return mock[good]
 
@@ -129,7 +130,7 @@ def get_mock_hpmap(contaminated=False, selection_fn=None, nside=256, tracer='LRG
     mock_hpmap = project2hp(nside, mock)
     return mock_hpmap
 
-def get_mock(contaminated=False, selection_fn=None, norm_method='mean', downsampling='mean', nside=256, 
+def get_mock(contaminated=False, selection_fn=None, norm_method='mean', downsampling='mean', nside=256, seed=42,
              tracer='LRG', ph=0, return_hpix=False, main=0, nz=0, Y5=1, sv3=0):
     if selection_fn is not None:
         nside = hp.get_nside(selection_fn)
@@ -144,7 +145,7 @@ def get_mock(contaminated=False, selection_fn=None, norm_method='mean', downsamp
         # normalize the selection function to [0, 1]
         selection_func = normalize_selection_func(selection_fn, norm_method=norm_method)
         # subsample the mock catalog, and project to HEALPix
-        mock = downsample(selection_func, mock,  downsampling=downsampling)
+        mock = downsample(selection_func, mock,  downsampling=downsampling, seed=seed)
         
     if return_hpix:
         hpix = radec2hpix(nside, mock['RA'], mock['DEC'])
