@@ -54,23 +54,28 @@ def normalize_selection_func(ngal_pred, norm_method='mean'):
     good = ngal_pred>0
     # normalize the selection function to [0, 1]
     if norm_method=='mean':
-        print('contamination using mean')
+        print('using mean for normalizing selection function')
         vmin, vmax = ngal_pred[good].min(), ngal_pred[good].mean() #np.percentile(ngal_pred[good], [0, 100])
         selection_func = np.zeros_like(ngal_pred)
         selection_func[good] = (ngal_pred[good]/vmax)#-vmin) / (vmax-vmin)
     else:
-        print('contamination using percentile')
+        print('using percentiles for normalizing selection function')
         vmin, vmax = np.percentile(ngal_pred[good], [0, 100])
         selection_func = np.zeros_like(ngal_pred)
         selection_func[good] = (ngal_pred[good]-vmin) / (vmax-vmin)
     return selection_func
 
-def downsample(selection_func, mock, downsampling='mean', seed=None):
+def downsample(selection_func, mock, downsampling='mean', seed=None, do_shuffle=False, ignore_prob=False):
     """ downsample a mock catalog with a given selection function """
     assert downsampling in 'mean_frac', "downsampling method must be 'mean' or 'frac'"
     nside = hp.get_nside(selection_func)
     hpix = radec2hpix(nside, mock['RA'], mock['DEC'])
     prob = selection_func[hpix]
+    np.random.seed(seed=seed*2)
+    if do_shuffle: 
+        print('shuffling selection function')
+        prob = np.random.permutation(prob)
+    if ignore_prob:prob[:] = 1.0
     if downsampling=='frac':
         print('using frac when downsampling')
         raw = Table.read('LRG_nz_raw.fits')
@@ -81,7 +86,7 @@ def downsample(selection_func, mock, downsampling='mean', seed=None):
         dndz_raw = fraw(mock['Z'])
         frac = dndz_main/dndz_raw
         prob *= frac
-    rng = np.random.seed(seed=seed)
+    np.random.seed(seed=seed)
     good = np.random.uniform(size=mock.size) < prob
     return mock[good]
 
@@ -131,13 +136,13 @@ def get_mock_hpmap(contaminated=False, selection_fn=None, nside=256, tracer='LRG
     return mock_hpmap
 
 def get_mock(contaminated=False, selection_fn=None, norm_method='mean', downsampling='mean', nside=256, seed=42,
-             tracer='LRG', ph=0, return_hpix=False, main=0, nz=0, Y5=1, sv3=0):
+             do_shuffle=False, ignore_prob=False, tracer='LRG', ph=0, return_hpix=False, main=0, nz=0, Y5=1, sv3=0):
     if selection_fn is not None:
         nside = hp.get_nside(selection_fn)
     # read the mock catalog
     mock_name = _desi_mock_filename(tracer=tracer, ph=ph)
     print(f'using {mock_name}')
-    mock = apply_mock_mask(mock_name, main=main, nz=nz, Y5=Y5, sv3=sv3) # mask Y5 by default
+    mock = apply_mock_mask(mock_name, main=main, nz=nz, Y5=Y5, sv3=sv3) # Y5 selection by default
     
     if contaminated:
         assert selection_fn is not None, "provide selection function"
@@ -145,7 +150,8 @@ def get_mock(contaminated=False, selection_fn=None, norm_method='mean', downsamp
         # normalize the selection function to [0, 1]
         selection_func = normalize_selection_func(selection_fn, norm_method=norm_method)
         # subsample the mock catalog, and project to HEALPix
-        mock = downsample(selection_func, mock,  downsampling=downsampling, seed=seed)
+        mock = downsample(selection_func, mock,  downsampling=downsampling, seed=seed, 
+                          do_shuffle=do_shuffle, ignore_prob=ignore_prob)
         
     if return_hpix:
         hpix = radec2hpix(nside, mock['RA'], mock['DEC'])
@@ -157,7 +163,7 @@ def mock_mask(main=0, nz=0, Y5=0, sv3=0):
     #https://desi.lbl.gov/trac/attachment/wiki/CosmoSimsWG/FirstGenerationMocks/STATUS_script_example.py
     return main * (2**3) + sv3 * (2**2) + Y5 * (2**1) + nz * (2**0)
 
-def apply_mock_mask(filename, main=1, nz=0, Y5=1, sv3=0):
+def apply_mock_mask(filename, main=0, nz=0, Y5=1, sv3=0):
     #https://desi.lbl.gov/trac/attachment/wiki/CosmoSimsWG/FirstGenerationMocks/STATUS_script_example.py
     ## Default value chooses the Y5 footprint and downsampled to input n(z)
     data = ft.read(filename) #Table.read(filename)
@@ -171,3 +177,43 @@ def apply_mock_mask(filename, main=1, nz=0, Y5=1, sv3=0):
     mask = mock_mask(main=main, nz=nz, Y5=Y5, sv3=sv3) # mask Y5 by default
     idx_good = idx[(STATUS & (mask))==mask]
     return data[idx_good]
+
+def get_nnbar(prep_data, maps, nside=256, selection_fn=None, binning='equi-area',njack=20, save=False, fn='', overwrite=False):
+   
+    ngal = prep_data['label']
+    nran = prep_data['fracgood']
+    mask = np.ones_like(prep_data['label'], '?')
+    sysm = prep_data['features']
+    if selection_fn is not None:
+        hpix = prep_data['hpix']
+        selection_fn = selection_fn[hpix]
+    print('computing nnbar')
+    nnbar_list = get_meandensity(ngal, nran, mask, sysm, 
+                                 columns=maps, selection_fn=selection_fn, binning=binning, percentiles=[1, 99],
+                                 global_nbar=True, njack=njack)
+    if save:
+        s = np.array(nnbar_list)
+        print('saving ', fn)
+        np.save(fn, s, overwrite=overwrite)
+        
+    return nnbar_list
+
+def mock_meandensity(mock, randoms, systematics, hp_order, maps, zmin=0., zmax=6., nside=256, selection_fn=None, binning='equi-area',
+                    njack=20, save=False, save_fn=''):
+    
+    prep_data = prepare_LRGmock_data(mock, randoms, systematics, hp_order=hp_order, zmin=zmin, zmax=zmax, nside=nside, columns=maps)
+
+    nnbar_list = get_nnbar(prep_data, maps, nside=nside, selection_fn=selection_fn, binning=binning, njack=njack)
+    
+    return nnbar_list, prep_data
+
+def read_mock(mock_fn, nside=256, return_hpix=False):
+    # read the mock catalog
+    print(f'reading {mock_fn}')
+    mock = Table.read(mock_fn)
+    
+    if return_hpix:
+        hpix = radec2hpix(nside, mock['RA'], mock['DEC'])
+        return mock, hpix
+    else:
+        return mock
